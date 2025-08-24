@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+"""
+generate_all.py
+Builds the full 52-card “Daddy’s Game” poker deck
+and matching card backs as print-ready PDFs (A4).
+"""
+
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import cm, mm
+from reportlab.lib.colors import Color, black, white
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# ---------- CONFIG ----------
+CARD_W, CARD_H = 63.5 * mm, 88.9 * mm          # poker size
+BLEED          = 2 * mm                        # print bleed
+PAGE_W, PAGE_H = A4
+MARGIN         = 10 * mm                       # top / left margin on paper
+GUTTER         = 3 * mm                        # gap between cards on sheet
+COLS, ROWS     = 3, 3                          # 3×3 grid per page
+
+# Colors (RGB 0-1)
+COLORS = {
+    "drinking":   Color(173/255, 216/255, 230/255),
+    "punishment": Color(255/255,  99/255,  71/255),
+    "tier1":      Color(144/255, 238/255, 144/255),
+    "tier2":      Color(216/255, 191/255, 216/255),
+    "tier3":      Color(255/255, 105/255, 180/255)
+}
+
+# ---------- CARD DATA ----------
+CARDS = [
+    # drinking – Banks
+    ["drinking", "Banks", "Line Up",        "Take a line of your choice off a surface or Emma’s body."],
+    ["drinking", "Banks", "Pipe Hit",       "Take a hit from your pipe, exhaling slowly while Emma watches."],
+    ["drinking", "Banks", "Shot Down",      "Take a shot, then point to a spot on Emma’s body to touch."],
+    ["drinking", "Banks", "Five-Second Chug","Down your drink 5 s, then set a rule for Emma."],
+    # drinking – Emma
+    ["drinking", "Emma",  "Ket Bump",       "Small ket bump; stay silent, nod at Banks for approval."],
+    ["drinking", "Emma",  "Pipe Hit",       "Take a pipe hit, holding eye contact as you exhale."],
+    ["drinking", "Emma",  "Shot Down",      "Take a shot of Banks’ choice, then 5-second sexy dance."],
+    ["drinking", "Emma",  "Five-Second Chug","Down drink 5 s, then kneel silently 10 s."],
+    # tier1 – Banks
+    ["tier1", "Banks", "Command Pose",   "Order Emma to hold a pose 60 s while you stroke lightly."],
+    ["tier1", "Banks", "Rule Starter",   "Set a silent rule for next 2 hands; break = 3 spanks."],
+    ["tier1", "Banks", "Tease Touch",    "Emma kisses your clothed cock 30 s, eye contact."],
+    ["tier1", "Banks", "Spank Warning",  "One hard spank + describe future spank scenario."],
+    # tier1 – Emma
+    ["tier1", "Emma",  "Flirty Adjustment","Adjust clothing, nod for Banks’ approval."],
+    ["tier1", "Emma",  "Obedient Gesture", "Mime ‘What do you want, Daddy?’ then obey silently."],
+    ["tier1", "Emma",  "Sexy Dance",      "Slow silent sway 60 s; break character = 3 spanks."],
+    ["tier1", "Emma",  "Cock Tease",      "Stroke Banks’ cock over pants 30 s, silent."],
+    # punishment – Banks
+    ["punishment", "Banks", "Three Hard Spanks","Deliver 3 intense spanks; Emma nods after each."],
+    ["punishment", "Banks", "Silent Kneel","Emma kneels 60 s, eyes down, no sound."],
+    ["punishment", "Banks", "Muted Pose",  "Emma holds chosen pose 30 s in silence."],
+    ["punishment", "Banks", "Quiet Strip", "Emma removes one clothing item silently."],
+    ["punishment", "Banks", "Cock Worship Pause","30 s kissing/stroking + 30 s quiet kneel."],
+    ["punishment", "Banks", "Rule Reset",  "Set strict rule for next 2 hands."],
+    # tier2 – Banks
+    ["tier2", "Banks", "Outfit Control", "Choose/remove clothing; Emma changes silently 2 min."],
+    ["tier2", "Banks", "Toy Command",    "Emma rubs small toy over clothes while you stroke."],
+    ["tier2", "Banks", "Intense Spanks", "3 hard spanks; nod after each or repeat."],
+    ["tier2", "Banks", "Cock Worship",   "Kiss & stroke your cock 60 s, your choice clothed/bare."],
+    ["tier2", "Banks", "Rule Tightening","Strict rule next 3 hands; break = 3 spanks."],
+    ["tier2", "Banks", "Toy Prep",       "Hand medium toy; Emma holds while you describe use."],
+    ["tier2", "Banks", "Video Tease",    "Describe 2-min silent video; Emma sends 3 photos + vid within 10 min."],
+    ["tier2", "Banks", "Power Pose",     "Order kneel 60 s then coconut-oil line off her body."],
+    ["tier2", "Banks", "Cock and Spank", "Emma strokes 30 s; you spank 3× next 30 s."],
+    ["tier2", "Banks", "Toy Tease",      "Insert small toy halfway, hold 30 s silently."],
+    # tier2 – Emma
+    ["tier2", "Emma",  "Coconut Oil Tease","Oil body 3 min, then drip soy wax where Banks chooses."],
+    ["tier2", "Emma",  "Vibrator Play",   "Use small vibe low setting during 2 poker hands."],
+    ["tier2", "Emma",  "Sultry Pose",     "Hold pose 60 s silent on all fours etc."],
+    ["tier2", "Emma",  "Pleading Spanks", "Beg with gestures for 3 spanks; nod after each."],
+    ["tier2", "Emma",  "Toy Temptation",  "Fuck medium dildo 60 s while Banks spanks 3×."],
+    ["tier2", "Emma",  "Dressed for Daddy","Change into lingerie; silent sexy dance 2 min."],
+    ["tier2", "Emma",  "Cock Surrender",  "Offer 40 s blowjob control to Banks."],
+    ["tier2", "Emma",  "Toy Display",     "Hold medium toy on clit 60 s silent."],
+    ["tier2", "Emma",  "Kneeling Tease",  "Kneel, stroke cock 30 s eyes down."],
+    ["tier2", "Emma",  "Wax Play",        "Drip soy wax on chosen spot, stay still while Banks touches."],
+    # tier3 – Banks
+    ["tier3", "Banks", "Show Director",   "Direct Emma fucking large dildo 4 min while you stroke."],
+    ["tier3", "Banks", "Spank Domination","5 intense spanks; nod after each or repeat."],
+    ["tier3", "Banks", "Cock Command",    "Guide Emma’s head for 2-min worship."],
+    ["tier3", "Banks", "Toy Test",        "Insert chosen toy slowly; no complaints allowed."],
+    ["tier3", "Banks", "Total Control",   "Strip or dress Emma exactly, pose while stroking 3 min."],
+    ["tier3", "Banks", "Performance Finale","Direct 5-min show: largest toy, crawling, stripping."],
+    # tier3 – Emma
+    ["tier3", "Emma",  "Erotic Show",     "Dance silently with largest toy, gesture for depth/speed."],
+    ["tier3", "Emma",  "Bound Surrender", "Offer wrists, obey commands 2 min."],
+    ["tier3", "Emma",  "Cock and Toy",    "Fuck largest dildo while sucking/stroking Banks 3 min."],
+    ["tier3", "Emma",  "Total Submission","Kneel, silently await 3 commands, obey instantly."]
+]
+
+# ---------- HELPERS ----------
+def _rounded_rect(c, x, y, w, h, r):
+    """Draw rounded rectangle (bleed-safe)"""
+    c.roundRect(x-BLEED, y-BLEED, w+2*BLEED, h+2*BLEED, r, fill=1, stroke=0)
+
+def _centered_text(c, txt, x, y, size=10, bold=False):
+    c.setFont("Helvetica-Bold" if bold else "Helvetica", size)
+    c.drawCentredString(x, y, txt)
+
+def draw_card_front(c, x, y, deck, player, title, prompt):
+    """Draw a single card front with bleed"""
+    color = COLORS[deck]
+    _rounded_rect(c, x, y, CARD_W, CARD_H, 3*mm)
+    c.setFillColor(color)
+    c.rect(x, y, CARD_W, CARD_H, fill=1, stroke=0)
+
+    # Border
+    c.setStrokeColor(black)
+    c.setLineWidth(0.5)
+    c.rect(x, y, CARD_W, CARD_H, fill=0)
+
+    # Title
+    _centered_text(c, f"{deck.capitalize()}: {player}" if deck != "punishment" else "Punishment Card",
+                   x + CARD_W/2, y + CARD_H - 11*mm, 12, bold=True)
+
+    # Prompt
+    c.setFillColor(black)
+    lines = prompt.split("; ")
+    y_text = y + CARD_H - 20*mm
+    for ln in lines:
+        _centered_text(c, ln.strip(), x + CARD_W/2, y_text, 9)
+        y_text -= 5*mm
+
+def draw_card_back(c, x, y):
+    """Minimal black back with centered white text"""
+    _rounded_rect(c, x, y, CARD_W, CARD_H, 3*mm)
+    c.setFillColor(black)
+    c.rect(x, y, CARD_W, CARD_H, fill=1, stroke=0)
+    c.setFillColor(white)
+    _centered_text(c, "Daddy's Game", x + CARD_W/2, y + CARD_H/2, 16, bold=True)
+
+# ---------- PAGE LAYOUT ----------
+def _layout_positions():
+    """Return list of (x,y) for each card slot on A4"""
+    pos = []
+    for r in range(ROWS):
+        for c in range(COLS):
+            px = MARGIN + c*(CARD_W + GUTTER)
+            py = PAGE_H - MARGIN - (r+1)*(CARD_H + GUTTER)
+            pos.append((px, py))
+    return pos
+
+# ---------- PDF GENERATION ----------
+def build_pdf(filename, draw_fn, items):
+    """Generic builder"""
+    c = canvas.Canvas(filename, pagesize=A4)
+    slots = _layout_positions()
+    for idx, data in enumerate(items):
+        if idx % (ROWS*COLS) == 0 and idx != 0:
+            c.showPage()
+        slot = idx % (ROWS*COLS)
+        x, y = slots[slot]
+        draw_fn(c, x, y, *data) if isinstance(data, (list, tuple)) else draw_fn(c, x, y)
+    # Pad last page with blanks if needed
+    remaining = (ROWS*COLS - len(items) % (ROWS*COLS)) % (ROWS*COLS)
+    for _ in range(remaining):
+        x, y = slots[len(items) % (ROWS*COLS) + _]
+        # leave empty
+    c.save()
+
+# ---------- MAIN ----------
+if __name__ == "__main__":
+    print("Generating poker_cards.pdf ...")
+    build_pdf("poker_cards.pdf", draw_card_front, CARDS)
+
+    print("Generating card_backs.pdf ...")
+    build_pdf("card_backs.pdf", draw_card_back, [None]*len(CARDS))
+
+    print("Done!  Print double-sided on A4, cut along bleed marks.")
