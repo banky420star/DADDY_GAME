@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Daddy's Game - Banks & Emma Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --drinking-color: #FF6F61;
+            --drinking-accent: #FF69B4;
+            --tier1-color: #D8BFD8;
+            --tier1-accent: #9370DB;
+            --tier2-color: #008B8B;
+            --tier2-accent: #20B2AA;
+            --tier3-color: #DC143C;
+            --tier3-accent: #FF4500;
+            --punishment-color: #1C2526;
+            --punishment-accent: #FF0000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #121212 0%, #1C2526 25%, #2a0a2a 50%, #1C2526 75%, #121212 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            color: #E0E0E0;
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #8a2be2, #9370db, #ba55d3, #9932cc, #8b008b);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+
+        .consent-disclaimer {
+            background: rgba(220, 20, 60, 0.2);
+            border: 2px solid rgba(220, 20, 60, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        .consent-disclaimer strong {
+            color: #FF69B4;
+        }
+
+        .tier-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .tier-card {
+            background: rgba(0,0,0,0.7);
+            border-radius: 25px;
+            padding: 35px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .tier-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+        }
+
+        .tier-card.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+        }
+
+        .tier-card.drinking { background: linear-gradient(135deg, rgba(255, 111, 97, 0.3), rgba(255, 105, 180, 0.2)); border-color: #FF6F61; }
+        .tier-card.tier1 { background: linear-gradient(135deg, rgba(216, 191, 216, 0.3), rgba(147, 112, 219, 0.2)); border-color: #D8BFD8; }
+        .tier-card.tier2 { background: linear-gradient(135deg, rgba(0, 139, 139, 0.3), rgba(32, 178, 170, 0.2)); border-color: #008B8B; }
+        .tier-card.tier3 { background: linear-gradient(135deg, rgba(220, 20, 60, 0.3), rgba(255, 69, 0, 0.2)); border-color: #DC143C; }
+        .tier-card.punishment { background: linear-gradient(135deg, rgba(28, 37, 38, 0.3), rgba(255, 0, 0, 0.2)); border-color: #1C2526; }
+
+        .tier-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tier-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .card-count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .game-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            min-height: 70vh;
+        }
+
+        .card {
+            width: 400px;
+            height: 600px;
+            margin: 30px auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s ease;
+            cursor: pointer;
+            border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 25px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #1a0a1a, #2a0a2a);
+            border: 3px solid rgba(138, 43, 226, 0.5);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #2a0a2a, #3a0a3a);
+            border: 3px solid rgba(138, 43, 226, 0.5);
+            transform: rotateY(180deg);
+        }
+
+        .tier-image {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            border-radius: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #da70d6, #9370db, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-prompt {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            margin: 25px 0;
+            background: rgba(0,0,0,0.5);
+            padding: 25px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .card-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .card-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .flip-btn {
+            background: linear-gradient(45deg, #8a2be2, #9370db);
+            color: white;
+        }
+
+        .skip-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .card-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #8a2be2, #9370db);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 500px;
+            height: 12px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 30px auto;
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8a2be2, #9370db, #ba55d3, #9932cc);
+            transition: width 0.8s ease;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.7);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8a2be2;
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .title { font-size: 2.5rem; }
+            .card { width: 320px; height: 500px; }
+            .tier-selection { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 280px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🎴 Daddy's Game - Banks & Emma Edition 🎴</h1>
+            <p class="subtitle">Explicit Dom/Sub gameplay with Banks commanding Emma</p>
+            <div class="consent-disclaimer">
+                ⚠️ <strong>Consent Notice:</strong> All activities require mutual consent. Banks is the dominant, Emma is the submissive. 
+                Use the skip button if uncomfortable. This game contains explicit adult content designed for consenting couples.
+            </div>
+        </div>
+
+        <div id="tierSelection">
+            <div class="tier-selection">
+                <div class="tier-card drinking" onclick="selectTier('Drinking')">
+                    <div class="tier-name">🍺 Drinking</div>
+                    <div class="tier-description">Banks commands Emma during alcohol-infused, mildly explicit activities</div>
+                    <div class="card-count">15 cards</div>
+                </div>
+                <div class="tier-card tier1" onclick="selectTier('Tier 1')">
+                    <div class="tier-name">🟢 Tier 1</div>
+                    <div class="tier-description">Banks orders Emma in light but explicit sensual acts and teasing</div>
+                    <div class="card-count">15 cards</div>
+                </div>
+                <div class="tier-card tier2" onclick="selectTier('Tier 2')">
+                    <div class="tier-name">🟣 Tier 2</div>
+                    <div class="tier-description">Banks commands Emma in moderate, detailed sexual tasks and exploration</div>
+                    <div class="card-count">12 cards</div>
+                </div>
+                <div class="tier-card tier3" onclick="selectTier('Tier 3')">
+                    <div class="tier-name">🔴 Tier 3</div>
+                    <div class="tier-description">Banks orders Emma in daring, highly sexual scenarios and role-play</div>
+                    <div class="card-count">10 cards</div>
+                </div>
+                <div class="tier-card punishment" onclick="selectTier('Punishment')">
+                    <div class="tier-name">⚡ Punishment</div>
+                    <div class="tier-description">Banks punishes Emma with extreme, boundary-pushing erotic challenges</div>
+                    <div class="card-count">8 cards</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameArea" class="game-area">
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-value" id="currentCard">0</div>
+                    <div class="stat-label">Current</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="totalCards">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="completedCards">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div id="cardContainer"></div>
+
+            <div class="controls">
+                <button class="btn secondary" onclick="showTierSelection()">Change Tier</button>
+                <button class="btn" onclick="nextCard()">Next Card</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameData = {
+            selectedTier: null,
+            currentCardIndex: 0,
+            cards: [],
+            completedCards: 0
+        };
+
+        let cardsData = null;
+
+        // Load cards data
+        fetch('cards.json')
+            .then(response => response.json())
+            .then(data => {
+                cardsData = data;
+                console.log('Cards data loaded successfully');
+            })
+            .catch(error => {
+                console.error('Error loading cards:', error);
+            });
+
+        function selectTier(tierName) {
+            gameData.selectedTier = tierName;
+            gameData.currentCardIndex = 0;
+            gameData.completedCards = 0;
+            
+            const tierData = cardsData.tiers.find(tier => tier.name === tierName);
+            if (tierData) {
+                gameData.cards = [...tierData.cards];
+                shuffleArray(gameData.cards);
+            }
+            
+            document.querySelectorAll('.tier-card').forEach(card => card.classList.remove('selected'));
+            event.target.closest('.tier-card').classList.add('selected');
+            
+            document.getElementById('tierSelection').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'flex';
+            
+            createCard();
+            updateStats();
+        }
+
+        function showTierSelection() {
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('tierSelection').style.display = 'block';
+        }
+
+        function createCard() {
+            const cardContainer = document.getElementById('cardContainer');
+            const tierData = cardsData.tiers.find(tier => tier.name === gameData.selectedTier);
+            
+            if (!tierData || gameData.currentCardIndex >= gameData.cards.length) {
+                cardContainer.innerHTML = '<div style="text-align: center; padding: 50px;"><h2 style="font-size: 2.5rem; margin-bottom: 20px;">🎉 All cards completed! 🎉</h2><p style="font-size: 1.2rem;">Great job completing all the cards in this tier!</p></div>';
+                return;
+            }
+
+            const currentCard = gameData.cards[gameData.currentCardIndex];
+            
+            cardContainer.innerHTML = `
+                <div class="card" onclick="flipCard(this)">
+                    <div class="card-face card-front">
+                        <div class="tier-image">${getTierEmoji(gameData.selectedTier)}</div>
+                        <div class="card-title">${gameData.selectedTier}</div>
+                        <div class="card-prompt">Tap to reveal Banks' command for Emma...</div>
+                        <div class="card-buttons">
+                            <button class="card-button flip-btn" onclick="event.stopPropagation(); flipCard(this.parentElement.parentElement.parentElement)">Flip Card</button>
+                            <button class="card-button skip-btn" onclick="event.stopPropagation(); skipCard()">Skip</button>
+                        </div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="tier-image">${getTierEmoji(gameData.selectedTier)}</div>
+                        <div class="card-title">Banks Commands Emma</div>
+                        <div class="card-prompt">${currentCard}</div>
+                        <div class="card-buttons">
+                            <button class="card-button flip-btn" onclick="event.stopPropagation(); flipCard(this.parentElement.parentElement.parentElement)">Flip Back</button>
+                            <button class="card-button skip-btn" onclick="event.stopPropagation(); skipCard()">Skip</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTierEmoji(tierName) {
+            const emojis = {
+                'Drinking': '🍺',
+                'Tier 1': '🟢',
+                'Tier 2': '🟣',
+                'Tier 3': '🔴',
+                'Punishment': '⚡'
+            };
+            return emojis[tierName] || '🎴';
+        }
+
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+
+        function skipCard() {
+            gameData.currentCardIndex++;
+            updateStats();
+            createCard();
+        }
+
+        function nextCard() {
+            if (gameData.currentCardIndex < gameData.cards.length - 1) {
+                gameData.currentCardIndex++;
+                gameData.completedCards++;
+                updateStats();
+                createCard();
+            } else {
+                alert(`🎉 Congratulations! You've completed all ${gameData.cards.length} cards in the ${gameData.selectedTier} tier!`);
+                showTierSelection();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('currentCard').textContent = gameData.currentCardIndex + 1;
+            document.getElementById('totalCards').textContent = gameData.cards.length;
+            document.getElementById('completedCards').textContent = gameData.completedCards;
+            
+            const progress = ((gameData.currentCardIndex + 1) / gameData.cards.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('gameArea').style.display === 'flex') {
+                switch(e.key) {
+                    case 'ArrowRight':
+                        nextCard();
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        e.preventDefault();
+                        const card = document.querySelector('.card');
+                        if (card) flipCard(card);
+                        break;
+                    case 'Escape':
+                        showTierSelection();
+                        break;
+                }
+            }
+        });
+
+        // Touch/swipe controls for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextCard();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
