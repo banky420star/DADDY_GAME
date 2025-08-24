@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Daddy's Game - Enhanced Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 25%, #2a0a2a 50%, #1a0a1a 75%, #0a0a0a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(138, 43, 226, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(75, 0, 130, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(128, 0, 128, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 60% 60%, rgba(25, 25, 112, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(138, 43, 226, 0.5);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #8a2be2, #9370db, #ba55d3, #9932cc, #8b008b);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 4s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(138, 43, 226, 0.8);
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .game-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+            overflow: hidden;
+        }
+
+        .card-container {
+            position: relative;
+            width: 320px;
+            height: 450px;
+            perspective: 1000px;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s ease;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 25px;
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.8),
+                0 0 0 1px rgba(138, 43, 226, 0.3),
+                inset 0 1px 0 rgba(138, 43, 226, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            overflow: hidden;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 50%, #2a0a2a 100%);
+            color: white;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #1a0a1a 0%, #2a0a2a 50%, #3a0a3a 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-face::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .card-front::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(75, 0, 130, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .card-back::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(138, 43, 226, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(75, 0, 130, 0.4) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .card-content {
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(45deg, #da70d6, #9370db, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-player {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            padding: 8px 18px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-prompt {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-top: 25px;
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .card-front .card-prompt {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.4);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #8a2be2, #9370db, #ba55d3);
+            background-size: 200% 200%;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.5),
+                0 0 0 1px rgba(138, 43, 226, 0.3);
+            min-width: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 15px 35px rgba(0,0,0,0.4),
+                0 0 0 2px rgba(255,255,255,0.2);
+            animation: buttonPulse 0.6s ease-in-out;
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { transform: translateY(-3px) scale(1.05); }
+            50% { transform: translateY(-3px) scale(1.08); }
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .btn.warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            color: white;
+            font-size: 0.9rem;
+            border-radius: 20px;
+            margin: 10px 20px;
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            box-shadow: 
+                0 10px 30px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(138, 43, 226, 0.2);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #da70d6, #9370db, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+            animation: statPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, rgba(138, 43, 226, 0.4), rgba(75, 0, 130, 0.3));
+            color: white;
+            border: 1px solid rgba(138, 43, 226, 0.6);
+            padding: 15px 28px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.3s;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(45deg, rgba(138, 43, 226, 0.6), rgba(75, 0, 130, 0.4));
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+            border-color: rgba(138, 43, 226, 0.9);
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8a2be2, #9370db, #ba55d3, #9932cc);
+            background-size: 200% 100%;
+            transition: width 0.8s ease;
+            border-radius: 12px;
+            animation: progressGlow 3s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.7);
+        }
+
+        @keyframes progressGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .flip-animation {
+            animation: flipCard 1.2s ease-in-out;
+        }
+
+        @keyframes flipCard {
+            0% { transform: rotateY(0deg) scale(1); }
+            25% { transform: rotateY(45deg) scale(1.1); }
+            50% { transform: rotateY(90deg) scale(1.05); }
+            75% { transform: rotateY(135deg) scale(1.1); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        .combo-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #8a2be2, #9370db, #ba55d3);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.6rem;
+            animation: comboPulse 2s ease-out;
+            z-index: 100;
+            box-shadow: 
+                0 15px 40px rgba(0,0,0,0.6),
+                0 0 0 3px rgba(138, 43, 226, 0.4);
+            text-shadow: 0 3px 6px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+        }
+
+        @keyframes comboPulse {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
+            20% { transform: translate(-50%, -50%) scale(1.4) rotate(8deg); opacity: 1; }
+            40% { transform: translate(-50%, -50%) scale(1.2) rotate(-5deg); opacity: 1; }
+            60% { transform: translate(-50%, -50%) scale(1.3) rotate(3deg); opacity: 0.9; }
+            80% { transform: translate(-50%, -50%) scale(1.1) rotate(-2deg); opacity: 0.7; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
+        }
+
+        .tier-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            padding: 25px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .tier-card {
+            background: linear-gradient(45deg, #1a0a1a, #2a0a2a);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        .tier-card:hover, .tier-card.selected {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border-color: #ffd700;
+        }
+
+        .tier-card.drinking { background: linear-gradient(45deg, #1a0a2a, #2a0a3a); }
+        .tier-card.tier1 { background: linear-gradient(45deg, #0a1a0a, #1a2a1a); }
+        .tier-card.tier2 { background: linear-gradient(45deg, #2a0a2a, #3a0a3a); }
+        .tier-card.tier3 { background: linear-gradient(45deg, #3a0a1a, #4a0a2a); }
+        .tier-card.punishment { background: linear-gradient(45deg, #2a0a0a, #3a0a0a); }
+
+        .tier-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .tier-description {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .card-count {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .card-container {
+                width: 280px;
+                height: 400px;
+            }
+            
+            .card-front, .card-back {
+                padding: 25px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 220px;
+            }
+
+            .tier-selection {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div class="screen active" id="welcomeScreen">
+            <div class="header">
+                <h1 class="title">🎴 Daddy's Game - Enhanced Edition 🎴</h1>
+                <p class="subtitle">Smooth card reveals with enhanced gameplay mechanics</p>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="showTierSelection()">Start Enhanced Game</button>
+            </div>
+        </div>
+
+        <!-- Tier Selection Screen -->
+        <div class="screen" id="tierScreen">
+            <div class="header">
+                <h1 class="title">Choose Your Tier</h1>
+                <p class="subtitle">Select difficulty and experience smooth card reveals</p>
+            </div>
+
+            <div class="tier-selection">
+                <div class="tier-card drinking" onclick="selectTier('drinking')">
+                    <div class="tier-name">🍺 Drinking</div>
+                    <div class="tier-description">Light drinking games and simple tasks</div>
+                    <div class="card-count">40 cards</div>
+                </div>
+                <div class="tier-card tier1" onclick="selectTier('tier1')">
+                    <div class="tier-name">🟢 Tier 1</div>
+                    <div class="tier-description">Basic commands and light play</div>
+                    <div class="card-count">50 cards</div>
+                </div>
+                <div class="tier-card tier2" onclick="selectTier('tier2')">
+                    <div class="tier-name">🟣 Tier 2</div>
+                    <div class="tier-description">More intimate activities and toys</div>
+                    <div class="card-count">20 cards</div>
+                </div>
+                <div class="tier-card tier3" onclick="selectTier('tier3')">
+                    <div class="tier-name">🔴 Tier 3</div>
+                    <div class="tier-description">Advanced play and submission</div>
+                    <div class="card-count">10 cards</div>
+                </div>
+                <div class="tier-card punishment" onclick="selectTier('punishment')">
+                    <div class="tier-name">⚡ Punishment</div>
+                    <div class="tier-description">Discipline and control elements</div>
+                    <div class="card-count">6 cards</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn secondary" onclick="showWelcome()">Back</button>
+                <button class="btn" id="startGameBtn" onclick="startEnhancedGame()" disabled>Start Enhanced Game</button>
+            </div>
+        </div>
+
+        <!-- Enhanced Game Screen -->
+        <div class="screen" id="enhancedGameScreen">
+            <div class="header">
+                <h1 class="title" id="gameTitle">Enhanced Game</h1>
+                <p class="subtitle" id="gameSubtitle">Tap card to flip • Swipe to navigate</p>
+            </div>
+
+            <div class="game-stats">
+                <div class="stat">
+                    <div class="stat-value" id="scoreValue">0</div>
+                    <div>Score</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="comboValue">0</div>
+                    <div>Combo</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="cardsCompleted">0</div>
+                    <div>Completed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="cardsRemaining">0</div>
+                    <div>Remaining</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="game-area">
+                <div class="card-container" id="cardContainer">
+                    <!-- Enhanced card will be dynamically generated here -->
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn" onclick="skipCard()">⏭️ Skip</button>
+                <button class="action-btn" onclick="completeCard()">✅ Complete</button>
+                <button class="action-btn" onclick="modifyCard()">🔄 Modify</button>
+            </div>
+
+            <div class="controls">
+                <button class="btn secondary" onclick="previousCard()">⬅️ Previous</button>
+                <button class="btn" onclick="nextCard()">Next ➡️</button>
+                <button class="btn warning" onclick="showTierSelection()">Change Tier</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            cards: [
+                // drinking – Banks (20 cards)
+                {tier: "drinking", player: "Banks", title: "Line Up", prompt: "Take a line of your choice off a surface or Emma's body. Make it sensual and slow."},
+                {tier: "drinking", player: "Banks", title: "Pipe Hit", prompt: "Take a hit from your pipe, exhaling slowly while Emma watches. Hold eye contact."},
+                {tier: "drinking", player: "Banks", title: "Shot Down", prompt: "Take a shot, then point to a spot on Emma's body to touch. Make it intimate."},
+                {tier: "drinking", player: "Banks", title: "Five-Second Chug", prompt: "Down your drink in 5 seconds, then set a rule for Emma for the next round."},
+                {tier: "drinking", player: "Banks", title: "Whiskey Kiss", prompt: "Take a sip of whiskey, then kiss Emma passionately, sharing the taste."},
+                {tier: "drinking", player: "Banks", title: "Beer Challenge", prompt: "Chug a beer in 10 seconds, then describe what you want to do to Emma."},
+                {tier: "drinking", player: "Banks", title: "Vodka Shot", prompt: "Take a vodka shot, then lick Emma's neck slowly from shoulder to ear."},
+                {tier: "drinking", player: "Banks", title: "Rum and Coke", prompt: "Mix a rum and coke, then feed Emma a sip while looking into her eyes."},
+                {tier: "drinking", player: "Banks", title: "Tequila Slam", prompt: "Do a tequila slam, then bite Emma's earlobe gently."},
+                {tier: "drinking", player: "Banks", title: "Gin and Tonic", prompt: "Make a gin and tonic, then trace the rim of the glass on Emma's collarbone."},
+                {tier: "drinking", player: "Banks", title: "Bourbon Sip", prompt: "Sip bourbon slowly, then whisper something dirty in Emma's ear."},
+                {tier: "drinking", player: "Banks", title: "Scotch Neat", prompt: "Drink scotch neat, then caress Emma's thigh while maintaining eye contact."},
+                {tier: "drinking", player: "Banks", title: "Wine Tasting", prompt: "Taste wine, then kiss Emma's lips and describe the flavor."},
+                {tier: "drinking", player: "Banks", title: "Champagne Pop", prompt: "Pop champagne, then pour a drop on Emma's cleavage and lick it off."},
+                {tier: "drinking", player: "Banks", title: "Margarita Salt", prompt: "Lick salt off Emma's neck, take a tequila shot, then suck a lime wedge."},
+                {tier: "drinking", player: "Banks", title: "Mojito Mint", prompt: "Crush mint in your mojito, then rub the minty fingers on Emma's lips."},
+                {tier: "drinking", player: "Banks", title: "Old Fashioned", prompt: "Make an old fashioned, then use the orange peel to tickle Emma's neck."},
+                {tier: "drinking", player: "Banks", title: "Manhattan", prompt: "Sip a manhattan, then trace Emma's jawline with your finger."},
+                {tier: "drinking", player: "Banks", title: "Martini Shake", prompt: "Shake a martini, then press the cold glass against Emma's warm skin."},
+                {tier: "drinking", player: "Banks", title: "Negroni", prompt: "Drink a negroni, then nibble on Emma's earlobe while holding her close."},
+                {tier: "drinking", player: "Banks", title: "Sazerac", prompt: "Sip a sazerac, then whisper a secret fantasy to Emma."},
+                // drinking – Emma (20 cards)
+                {tier: "drinking", player: "Emma", title: "Ket Bump", prompt: "Small ket bump; stay silent, nod at Banks for approval. Show submission."},
+                {tier: "drinking", player: "Emma", title: "Pipe Hit", prompt: "Take a pipe hit, holding eye contact as you exhale. Make it seductive."},
+                {tier: "drinking", player: "Emma", title: "Shot Down", prompt: "Take a shot of Banks' choice, then do a 5-second sexy dance for him."},
+                {tier: "drinking", player: "Emma", title: "Five-Second Chug", prompt: "Down your drink in 5 seconds, then kneel silently for 10 seconds."},
+                {tier: "drinking", player: "Emma", title: "Wine Sip", prompt: "Sip wine slowly, then lick your lips seductively while looking at Banks."},
+                {tier: "drinking", player: "Emma", title: "Champagne Bubble", prompt: "Let a champagne bubble pop on your tongue, then stick your tongue out slowly."},
+                {tier: "drinking", player: "Emma", title: "Cocktail Stir", prompt: "Stir your cocktail with your finger, then suck it clean while watching Banks."},
+                {tier: "drinking", player: "Emma", title: "Beer Foam", prompt: "Let beer foam drip down your chin, then lick it off slowly."},
+                {tier: "drinking", player: "Emma", title: "Vodka Shot", prompt: "Take a vodka shot, then blow in Banks' ear and whisper 'more'."},
+                {tier: "drinking", player: "Emma", title: "Rum Kiss", prompt: "Take a sip of rum, then kiss Banks passionately, sharing the flavor."},
+                {tier: "drinking", player: "Emma", title: "Tequila Bite", prompt: "Take a tequila shot, then gently bite Banks' lower lip."},
+                {tier: "drinking", player: "Emma", title: "Gin Fizz", prompt: "Sip a gin fizz, then let the bubbles tickle your nose and giggle."},
+                {tier: "drinking", player: "Emma", title: "Bourbon Warmth", prompt: "Sip bourbon, then press your warm lips against Banks' neck."},
+                {tier: "drinking", player: "Emma", title: "Scotch Smooth", prompt: "Taste scotch, then run your tongue over your lips slowly."},
+                {tier: "drinking", player: "Emma", title: "Margarita Salt", prompt: "Lick salt off your hand, take a shot, then suck a lime wedge seductively."},
+                {tier: "drinking", player: "Emma", title: "Mojito Fresh", prompt: "Sip a mojito, then breathe the minty freshness into Banks' face."},
+                {tier: "drinking", player: "Emma", title: "Martini Olive", prompt: "Eat the olive from your martini, then kiss Banks, sharing the taste."},
+                {tier: "drinking", player: "Emma", title: "Manhattan Cherry", prompt: "Eat the cherry from your manhattan, then suck on your finger suggestively."},
+                {tier: "drinking", player: "Emma", title: "Negroni Bitter", prompt: "Sip a negroni, then make a face and ask Banks to make it better."},
+                {tier: "drinking", player: "Emma", title: "Sazerac Sweet", prompt: "Taste a sazerac, then lick your lips and ask Banks what he tastes."},
+                // tier1 – Banks (25 cards)
+                {tier: "tier1", player: "Banks", title: "Command Pose", prompt: "Order Emma to hold a pose for 60 seconds while you stroke lightly. Be dominant."},
+                {tier: "tier1", player: "Banks", title: "Rule Starter", prompt: "Set a silent rule for the next 2 hands; if broken = 3 spanks."},
+                {tier: "tier1", player: "Banks", title: "Tease Touch", prompt: "Emma kisses your clothed cock for 30 seconds with eye contact."},
+                {tier: "tier1", player: "Banks", title: "Spank Warning", prompt: "Give one hard spank + describe a future spank scenario in detail."},
+                {tier: "tier1", player: "Banks", title: "Eye Contact", prompt: "Order Emma to maintain eye contact while you stroke for 45 seconds."},
+                {tier: "tier1", player: "Banks", title: "Silent Rule", prompt: "Set a rule that Emma must stay silent for the next 3 hands."},
+                {tier: "tier1", player: "Banks", title: "Pose Control", prompt: "Tell Emma to strike a pose and hold it for 90 seconds."},
+                {tier: "tier1", player: "Banks", title: "Touch Command", prompt: "Order Emma to touch herself over clothes for 30 seconds."},
+                {tier: "tier1", player: "Banks", title: "Kneel Time", prompt: "Command Emma to kneel in front of you for 60 seconds."},
+                {tier: "tier1", player: "Banks", title: "Strip Tease", prompt: "Tell Emma to remove one clothing item slowly."},
+                {tier: "tier1", player: "Banks", title: "Dance Command", prompt: "Order Emma to do a slow, seductive dance for 2 minutes."},
+                {tier: "tier1", player: "Banks", title: "Touch Restriction", prompt: "Tell Emma she can't touch you without permission for 3 hands."},
+                {tier: "tier1", player: "Banks", title: "Voice Control", prompt: "Order Emma to speak only when spoken to for 2 hands."},
+                {tier: "tier1", player: "Banks", title: "Position Control", prompt: "Tell Emma to sit in a specific position for 45 seconds."},
+                {tier: "tier1", player: "Banks", title: "Eye Restriction", prompt: "Order Emma to keep her eyes down unless told otherwise."},
+                {tier: "tier1", player: "Banks", title: "Movement Control", prompt: "Tell Emma she can't move without permission for 60 seconds."},
+                {tier: "tier1", player: "Banks", title: "Breathing Control", prompt: "Order Emma to breathe deeply and slowly for 30 seconds."},
+                {tier: "tier1", player: "Banks", title: "Hand Position", prompt: "Tell Emma where to place her hands and hold for 45 seconds."},
+                {tier: "tier1", player: "Banks", title: "Leg Position", prompt: "Order Emma to spread her legs slightly and hold for 60 seconds."},
+                {tier: "tier1", player: "Banks", title: "Head Position", prompt: "Tell Emma to tilt her head back and hold for 30 seconds."},
+                {tier: "tier1", player: "Banks", title: "Shoulder Control", prompt: "Order Emma to roll her shoulders back and hold for 45 seconds."},
+                {tier: "tier1", player: "Banks", title: "Hip Movement", prompt: "Tell Emma to sway her hips slowly for 60 seconds."},
+                {tier: "tier1", player: "Banks", title: "Arm Position", prompt: "Order Emma to raise her arms above her head for 45 seconds."},
+                {tier: "tier1", player: "Banks", title: "Back Arch", prompt: "Tell Emma to arch her back slightly and hold for 30 seconds."},
+                {tier: "tier1", player: "Banks", title: "Neck Exposure", prompt: "Order Emma to tilt her head to expose her neck for 60 seconds."},
+                // tier1 – Emma (25 cards)
+                {tier: "tier1", player: "Emma", title: "Flirty Adjustment", prompt: "Adjust your clothing seductively, nod for Banks' approval. Be submissive."},
+                {tier: "tier1", player: "Emma", title: "Obedient Gesture", prompt: "Mime 'What do you want, Daddy?' then obey his next command silently."},
+                {tier: "tier1", player: "Emma", title: "Sexy Dance", prompt: "Slow silent sway for 60 seconds; break character = 3 spanks."},
+                {tier: "tier1", player: "Emma", title: "Cock Tease", prompt: "Stroke Banks' cock over his pants for 30 seconds, stay silent."},
+                {tier: "tier1", player: "Emma", title: "Eye Contact", prompt: "Maintain intense eye contact with Banks for 45 seconds without blinking."},
+                {tier: "tier1", player: "Emma", title: "Silent Submission", prompt: "Stay completely silent for the next 2 hands, only nod or shake head."},
+                {tier: "tier1", player: "Emma", title: "Pose Hold", prompt: "Hold whatever pose Banks tells you for the full duration."},
+                {tier: "tier1", player: "Emma", title: "Touch Tease", prompt: "Touch yourself over clothes for 30 seconds while Banks watches."},
+                {tier: "tier1", player: "Emma", title: "Kneel Submission", prompt: "Kneel in front of Banks for 60 seconds, eyes down."},
+                {tier: "tier1", player: "Emma", title: "Slow Strip", prompt: "Remove one clothing item very slowly, making eye contact."},
+                {tier: "tier1", player: "Emma", title: "Seductive Dance", prompt: "Do a slow, sensual dance for 2 minutes while Banks strokes."},
+                {tier: "tier1", player: "Emma", title: "Permission Wait", prompt: "Don't touch Banks without permission for 3 hands."},
+                {tier: "tier1", player: "Emma", title: "Voice Control", prompt: "Only speak when Banks speaks to you for 2 hands."},
+                {tier: "tier1", player: "Emma", title: "Position Hold", prompt: "Hold whatever position Banks tells you for the full time."},
+                {tier: "tier1", player: "Emma", title: "Eyes Down", prompt: "Keep your eyes down unless Banks tells you to look up."},
+                {tier: "tier1", player: "Emma", title: "Still Movement", prompt: "Don't move unless Banks gives you permission for 60 seconds."},
+                {tier: "tier1", player: "Emma", title: "Deep Breathing", prompt: "Breathe deeply and slowly for 30 seconds while Banks watches."},
+                {tier: "tier1", player: "Emma", title: "Hand Placement", prompt: "Place your hands where Banks tells you and hold for 45 seconds."},
+                {tier: "tier1", player: "Emma", title: "Leg Spread", prompt: "Spread your legs slightly and hold for 60 seconds."},
+                {tier: "tier1", player: "Emma", title: "Head Tilt", prompt: "Tilt your head back and hold for 30 seconds."},
+                {tier: "tier1", player: "Emma", title: "Shoulder Roll", prompt: "Roll your shoulders back and hold for 45 seconds."},
+                {tier: "tier1", player: "Emma", title: "Hip Sway", prompt: "Sway your hips slowly for 60 seconds."},
+                {tier: "tier1", player: "Emma", title: "Arm Raise", prompt: "Raise your arms above your head for 45 seconds."},
+                {tier: "tier1", player: "Emma", title: "Back Arch", prompt: "Arch your back slightly and hold for 30 seconds."},
+                {tier: "tier1", player: "Emma", title: "Neck Tilt", prompt: "Tilt your head to expose your neck for 60 seconds."},
+                // punishment – Banks
+                {tier: "punishment", player: "Banks", title: "Three Hard Spanks", prompt: "Deliver 3 intense spanks; Emma nods after each one. Be firm."},
+                {tier: "punishment", player: "Banks", title: "Silent Kneel", prompt: "Emma kneels for 60 seconds, eyes down, no sound allowed."},
+                {tier: "punishment", player: "Banks", title: "Muted Pose", prompt: "Emma holds a chosen pose for 30 seconds in complete silence."},
+                {tier: "punishment", player: "Banks", title: "Quiet Strip", prompt: "Emma removes one clothing item silently and slowly."},
+                {tier: "punishment", player: "Banks", title: "Cock Worship Pause", prompt: "30 seconds kissing/stroking + 30 seconds quiet kneel."},
+                {tier: "punishment", player: "Banks", title: "Rule Reset", prompt: "Set a strict rule for the next 2 hands with consequences."},
+                // tier2 – Banks
+                {tier: "tier2", player: "Banks", title: "Outfit Control", prompt: "Choose/remove Emma's clothing; she changes silently over 2 minutes."},
+                {tier: "tier2", player: "Banks", title: "Toy Command", prompt: "Emma rubs a small toy over her clothes while you stroke. Watch her."},
+                {tier: "tier2", player: "Banks", title: "Intense Spanks", prompt: "3 hard spanks; Emma nods after each or you repeat them."},
+                {tier: "tier2", player: "Banks", title: "Cock Worship", prompt: "Emma kisses & strokes your cock for 60 seconds, your choice clothed/bare."},
+                {tier: "tier2", player: "Banks", title: "Rule Tightening", prompt: "Set a strict rule for the next 3 hands; break = 3 spanks."},
+                {tier: "tier2", player: "Banks", title: "Toy Prep", prompt: "Hand Emma a medium toy; she holds it while you describe how to use it."},
+                {tier: "tier2", player: "Banks", title: "Video Tease", prompt: "Describe a 2-minute silent video; Emma sends 3 photos + video within 10 minutes."},
+                {tier: "tier2", player: "Banks", title: "Power Pose", prompt: "Order Emma to kneel for 60 seconds then lick a coconut-oil line off her body."},
+                {tier: "tier2", player: "Banks", title: "Cock and Spank", prompt: "Emma strokes you for 30 seconds; you spank her 3 times in the next 30 seconds."},
+                {tier: "tier2", player: "Banks", title: "Toy Tease", prompt: "Insert a small toy halfway, Emma holds it for 30 seconds silently."},
+                // tier2 – Emma
+                {tier: "tier2", player: "Emma", title: "Coconut Oil Tease", prompt: "Oil your body for 3 minutes, then drip soy wax where Banks chooses."},
+                {tier: "tier2", player: "Emma", title: "Vibrator Play", prompt: "Use a small vibe on low setting during 2 poker hands. Stay quiet."},
+                {tier: "tier2", player: "Emma", title: "Sultry Pose", prompt: "Hold a seductive pose for 60 seconds silent on all fours or similar."},
+                {tier: "tier2", player: "Emma", title: "Pleading Spanks", prompt: "Beg with gestures for 3 spanks; nod after each one is delivered."},
+                {tier: "tier2", player: "Emma", title: "Toy Temptation", prompt: "Fuck yourself with a medium dildo for 60 seconds while Banks spanks you 3 times."},
+                {tier: "tier2", player: "Emma", title: "Dressed for Daddy", prompt: "Change into lingerie; do a silent sexy dance for 2 minutes."},
+                {tier: "tier2", player: "Emma", title: "Cock Surrender", prompt: "Offer 40 seconds of blowjob control to Banks. Be submissive."},
+                {tier: "tier2", player: "Emma", title: "Toy Display", prompt: "Hold a medium toy on your clit for 60 seconds silently."},
+                {tier: "tier2", player: "Emma", title: "Kneeling Tease", prompt: "Kneel, stroke Banks' cock for 30 seconds with eyes down."},
+                {tier: "tier2", player: "Emma", title: "Wax Play", prompt: "Drip soy wax on a chosen spot, stay still while Banks touches you."},
+                // tier3 – Banks
+                {tier: "tier3", player: "Banks", title: "Show Director", prompt: "Direct Emma fucking a large dildo for 4 minutes while you stroke. Be commanding."},
+                {tier: "tier3", player: "Banks", title: "Spank Domination", prompt: "5 intense spanks; Emma nods after each or you repeat them."},
+                {tier: "tier3", player: "Banks", title: "Cock Command", prompt: "Guide Emma's head for 2 minutes of worship. Be dominant."},
+                {tier: "tier3", player: "Banks", title: "Toy Test", prompt: "Insert a chosen toy slowly; no complaints allowed from Emma."},
+                {tier: "tier3", player: "Banks", title: "Total Control", prompt: "Strip or dress Emma exactly as you want, pose her while stroking for 3 minutes."},
+                {tier: "tier3", player: "Banks", title: "Performance Finale", prompt: "Direct a 5-minute show: largest toy, crawling, stripping. Be the director."},
+                // tier3 – Emma
+                {tier: "tier3", player: "Emma", title: "Erotic Show", prompt: "Dance silently with the largest toy, gesture for depth/speed control."},
+                {tier: "tier3", player: "Emma", title: "Bound Surrender", prompt: "Offer your wrists, obey all commands for 2 minutes without question."},
+                {tier: "tier3", player: "Emma", title: "Cock and Toy", prompt: "Fuck yourself with the largest dildo while sucking/stroking Banks for 3 minutes."},
+                {tier: "tier3", player: "Emma", title: "Total Submission", prompt: "Kneel, silently await 3 commands, obey instantly without hesitation."}
+            ],
+            selectedTier: null,
+            currentCardIndex: 0,
+            filteredCards: [],
+            score: 0,
+            combo: 0,
+            cardsCompleted: 0,
+            isCardFlipped: false
+        };
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showWelcome() {
+            showScreen('welcomeScreen');
+        }
+
+        function showTierSelection() {
+            showScreen('tierScreen');
+            document.getElementById('startGameBtn').disabled = true;
+        }
+
+        function selectTier(tier) {
+            gameData.selectedTier = tier;
+            document.querySelectorAll('.tier-card').forEach(card => card.classList.remove('selected'));
+            event.target.closest('.tier-card').classList.add('selected');
+            document.getElementById('startGameBtn').disabled = false;
+        }
+
+        function startEnhancedGame() {
+            if (!gameData.selectedTier) return;
+            
+            gameData.filteredCards = gameData.cards.filter(card => card.tier === gameData.selectedTier);
+            gameData.currentCardIndex = 0;
+            gameData.score = 0;
+            gameData.combo = 0;
+            gameData.cardsCompleted = 0;
+            gameData.isCardFlipped = false;
+            
+            console.log('Starting game with tier:', gameData.selectedTier); // Debug log
+            console.log('Filtered cards:', gameData.filteredCards); // Debug log
+            console.log('Total cards in tier:', gameData.filteredCards.length); // Debug log
+            
+            document.getElementById('gameTitle').textContent = `${gameData.selectedTier.charAt(0).toUpperCase() + gameData.selectedTier.slice(1)} Enhanced Game`;
+            document.getElementById('gameSubtitle').textContent = `${gameData.filteredCards.length} cards • Smooth reveals • Enhanced gameplay`;
+            
+            createEnhancedCard();
+            updateGameStats();
+            showScreen('enhancedGameScreen');
+        }
+
+        function createEnhancedCard() {
+            const cardContainer = document.getElementById('cardContainer');
+            
+            if (!cardContainer) {
+                console.error('Card container not found!'); // Debug log
+                return;
+            }
+            
+            cardContainer.innerHTML = '';
+            
+            if (gameData.currentCardIndex < gameData.filteredCards.length) {
+            const cardData = gameData.filteredCards[gameData.currentCardIndex];
+            
+            console.log('Creating card with data:', cardData); // Debug log
+                console.log('Current card index:', gameData.currentCardIndex); // Debug log
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = gameData.currentCardIndex;
+                
+                // Ensure card is visible
+                card.style.opacity = '1';
+                card.style.visibility = 'visible';
+            
+            card.innerHTML = `
+                    <div class="card-face card-front">
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div class="card-title">🎴 Daddy's Game</div>
+                                <div class="card-player">Tap to reveal your card</div>
+                        </div>
+                            <div class="card-prompt">
+                                ${gameData.selectedTier.toUpperCase()} TIER<br>
+                                <span style="font-size: 0.9rem; opacity: 0.7;">Enhanced Edition</span>
+                        </div>
+                    </div>
+                </div>
+                    <div class="card-face card-back">
+                    <div class="card-content">
+                        <div class="card-header">
+                                <div class="card-title">${cardData.title}</div>
+                                <div class="card-player">${cardData.player}</div>
+                        </div>
+                            <div class="card-prompt">${cardData.prompt}</div>
+                    </div>
+                </div>
+            `;
+            
+                card.addEventListener('click', () => flipEnhancedCard(card));
+                cardContainer.appendChild(card);
+                
+                console.log('Card created and appended'); // Debug log
+                
+                // Ensure card is visible after creation
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.visibility = 'visible';
+                    console.log('Card visibility ensured'); // Debug log
+                }, 100);
+            } else {
+                console.log('No more cards available'); // Debug log
+            }
+        }
+
+        function flipEnhancedCard(card) {
+            if (card.classList.contains('flipped')) return;
+            
+            console.log('🎴 Flipping card to reveal instructions...'); // Debug log
+            card.classList.add('flipped');
+            gameData.isCardFlipped = true;
+            
+            console.log('✅ Card flipped - instructions should now be visible!'); // Debug log
+        }
+
+        function updateGameStats() {
+            document.getElementById('scoreValue').textContent = gameData.score;
+            document.getElementById('comboValue').textContent = gameData.combo;
+            document.getElementById('cardsCompleted').textContent = gameData.cardsCompleted;
+            document.getElementById('cardsRemaining').textContent = gameData.filteredCards.length - gameData.currentCardIndex;
+            
+            const progress = (gameData.currentCardIndex / gameData.filteredCards.length) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        function completeCard() {
+            if (!gameData.isCardFlipped) return;
+            
+            const points = 15 + (gameData.combo * 8);
+            gameData.score += points;
+            gameData.combo++;
+            gameData.cardsCompleted++;
+            
+            showComboIndicator(`+${points} pts!`);
+            nextCard();
+        }
+
+        function skipCard() {
+            gameData.combo = 0;
+            nextCard();
+        }
+
+        function modifyCard() {
+            if (!gameData.isCardFlipped) return;
+            
+            gameData.score += 8;
+            gameData.combo = Math.max(0, gameData.combo - 1);
+            showComboIndicator("Modified!");
+            nextCard();
+        }
+
+        function showComboIndicator(text) {
+            const indicator = document.createElement('div');
+            indicator.className = 'combo-indicator';
+            indicator.textContent = text;
+            document.querySelector('.game-area').appendChild(indicator);
+            
+            setTimeout(() => indicator.remove(), 2000);
+        }
+
+        function nextCard() {
+            if (gameData.currentCardIndex < gameData.filteredCards.length - 1) {
+                gameData.currentCardIndex++;
+                gameData.isCardFlipped = false;
+                createEnhancedCard();
+                updateGameStats();
+            } else {
+                endGame();
+            }
+        }
+
+        function previousCard() {
+            if (gameData.currentCardIndex > 0) {
+                gameData.currentCardIndex--;
+                gameData.isCardFlipped = false;
+                createEnhancedCard();
+                updateGameStats();
+            }
+        }
+
+        function endGame() {
+            alert(`🎉 Game Complete! 🎉\n\nFinal Score: ${gameData.score}\nCards Completed: ${gameData.cardsCompleted}\nMax Combo: ${gameData.combo}\n\nGreat job!`);
+            showTierSelection();
+        }
+
+        // Touch event handling for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextCard();
+                } else {
+                    previousCard();
+                }
+            }
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', e => {
+            if (document.getElementById('enhancedGameScreen').classList.contains('active')) {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        previousCard();
+                        break;
+                    case 'ArrowRight':
+                        nextCard();
+                        break;
+                    case ' ':
+                    case 'Enter':
+                        e.preventDefault();
+                        const activeCard = document.querySelector('.card');
+                        if (activeCard) flipEnhancedCard(activeCard);
+                        break;
+                    case '1':
+                        completeCard();
+                        break;
+                    case '2':
+                        skipCard();
+                        break;
+                    case '3':
+                        modifyCard();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
